@@ -9,16 +9,12 @@
             --bg-color: #0d1117;
             --container-bg: #161b22;
             --text-color: #c9d1d9;
-            --accent-color: #00ff41; /* Хакерский зеленый */
+            --accent-color: #00ff41; 
             --border-color: #30363d;
             --error-color: #ff4444;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-color);
@@ -50,9 +46,7 @@
             text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+        .form-group { margin-bottom: 20px; }
 
         label {
             display: block;
@@ -79,16 +73,9 @@
             box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
+        textarea { resize: vertical; min-height: 120px; }
 
-        .buttons {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        .buttons { display: flex; gap: 15px; margin-bottom: 20px; }
 
         button {
             flex: 1;
@@ -111,9 +98,7 @@
             box-shadow: 0 0 10px var(--accent-color);
         }
 
-        #key-group {
-            display: none; /* Скрыто по умолчанию, показывается если нужен ключ */
-        }
+        #key-group { display: none; }
         
         .footer {
             text-align: center;
@@ -136,17 +121,17 @@
                 <option value="vigenere">Шифр Виженера</option>
                 <option value="morse">Азбука Морзе</option>
                 <option value="ascii">Таблица кодировки ASCII</option>
-                <option value="playfair">Шифр Плейфера (в разработке)</option>
-                <option value="polybius">Шифр Квадрат Полибия (в разработке)</option>
-                <option value="gronsfeld">Шифр Гронсфельда (в разработке)</option>
-                <option value="bacon">Шифр Бэкона (в разработке)</option>
-                <option value="koi8">Кодовая страница KOI8 (в разработке)</option>
+                <option value="playfair">Шифр Плейфера</option>
+                <option value="polybius">Шифр Квадрат Полибия</option>
+                <option value="gronsfeld">Шифр Гронсфельда</option>
+                <option value="bacon">Шифр Бэкона</option>
+                <option value="koi8">Кодовая страница KOI8</option>
             </select>
         </div>
 
         <div class="form-group" id="key-group">
-            <label for="cipher-key">Ключ / Сдвиг:</label>
-            <input type="text" id="cipher-key" placeholder="Введите ключ или число сдвига">
+            <label for="cipher-key">Ключ:</label>
+            <input type="text" id="cipher-key" placeholder="Введите ключ">
         </div>
 
         <div class="form-group">
@@ -165,54 +150,47 @@
         </div>
         
         <div class="footer">
-            project "kriptography" | github.com/твое_имя/kriptography
+            project "kriptography"
         </div>
     </div>
 
     <script>
-        // --- Управление интерфейсом ---
         const cipherSelector = document.getElementById('cipher-selector');
         const keyGroup = document.getElementById('key-group');
         const cipherKeyInput = document.getElementById('cipher-key');
 
-        // Показываем поле ключа только для тех шифров, где оно нужно
+        // Управление видимостью поля "Ключ"
         cipherSelector.addEventListener('change', (e) => {
             const needsKey = ['caesar', 'vigenere', 'gronsfeld', 'playfair'].includes(e.target.value);
             keyGroup.style.display = needsKey ? 'block' : 'none';
+            
             if(e.target.value === 'caesar') cipherKeyInput.placeholder = "Введите число (сдвиг)";
-            else if(e.target.value === 'vigenere') cipherKeyInput.placeholder = "Введите слово (ключ)";
+            else if(e.target.value === 'vigenere' || e.target.value === 'playfair') cipherKeyInput.placeholder = "Введите слово (ключ ENG)";
+            else if(e.target.value === 'gronsfeld') cipherKeyInput.placeholder = "Введите числа (например: 314)";
         });
 
-        // Инициализация при загрузке
         cipherSelector.dispatchEvent(new Event('change'));
 
-        // --- Главная функция обработки ---
         function processText(action) {
             const cipher = document.getElementById('cipher-selector').value;
             const input = document.getElementById('input-text').value;
             const key = document.getElementById('cipher-key').value;
             let output = '';
 
+            if(!input) return;
+
             try {
                 switch(cipher) {
-                    case 'caesar':
-                        output = caesarCipher(input, parseInt(key) || 3, action);
-                        break;
-                    case 'atbash':
-                        output = atbashCipher(input); // Атбаш симметричен, action не важен
-                        break;
-                    case 'morse':
-                        output = action === 'encrypt' ? textToMorse(input) : morseToText(input);
-                        break;
-                    case 'ascii':
-                        output = action === 'encrypt' ? textToAscii(input) : asciiToText(input);
-                        break;
-                    case 'vigenere':
-                        if(!key) { alert("Для шифра Виженера нужен ключ!"); return; }
-                        output = vigenereCipher(input, key, action);
-                        break;
-                    default:
-                        output = "Этот алгоритм еще находится в разработке! Заходи позже.";
+                    case 'caesar': output = caesarCipher(input, parseInt(key) || 3, action); break;
+                    case 'atbash': output = atbashCipher(input); break;
+                    case 'morse': output = action === 'encrypt' ? textToMorse(input) : morseToText(input); break;
+                    case 'ascii': output = action === 'encrypt' ? textToAscii(input) : asciiToText(input); break;
+                    case 'vigenere': output = vigenereCipher(input, key, action); break;
+                    case 'gronsfeld': output = gronsfeldCipher(input, key, action); break;
+                    case 'bacon': output = baconCipher(input, action); break;
+                    case 'polybius': output = polybiusCipher(input, action); break;
+                    case 'playfair': output = playfairCipher(input, key, action); break;
+                    case 'koi8': output = koi8EncodeDecode(input, action); break;
                 }
                 document.getElementById('output-text').value = output;
             } catch (error) {
@@ -220,91 +198,151 @@
             }
         }
 
-        // --- Реализации алгоритмов ---
-
-        // 1. Шифр Цезаря (Англ + Рус)
+        // --- 1. ЦЕЗАРЬ ---
         function caesarCipher(str, shift, action) {
-            if (action === 'decrypt') shift = (26 - (shift % 26)) % 26; // Для русского алфавита нужно будет доработать логику расшифровки, здесь базовый сдвиг
             if (action === 'decrypt') shift = -shift;
-
             return str.replace(/[a-zA-Zа-яА-Я]/g, function(c) {
                 let isRu = /[а-яА-Я]/.test(c);
                 let base = isRu ? (c <= 'Я' ? 1040 : 1072) : (c <= 'Z' ? 65 : 97);
                 let size = isRu ? 32 : 26;
                 let charCode = c.charCodeAt(0);
-                
                 let normalizedShift = shift % size;
                 if (normalizedShift < 0) normalizedShift += size;
-
                 return String.fromCharCode(((charCode - base + normalizedShift) % size) + base);
             });
         }
 
-        // 2. Шифр Атбаша (Англ)
+        // --- 2. АТБАШ ---
         function atbashCipher(str) {
-            return str.replace(/[a-zA-Z]/g, function(c) {
-                let base = c <= 'Z' ? 65 : 97;
-                return String.fromCharCode(base + (25 - (c.charCodeAt(0) - base)));
+            return str.replace(/[a-zA-Zа-яА-Я]/g, function(c) {
+                let isRu = /[а-яА-Я]/.test(c);
+                let base = isRu ? (c <= 'Я' ? 1040 : 1072) : (c <= 'Z' ? 65 : 97);
+                let size = isRu ? 32 : 26;
+                return String.fromCharCode(base + (size - 1 - (c.charCodeAt(0) - base)));
             });
         }
 
-        // 3. Шифр Виженера (Англ)
+        // --- 3. ВИЖЕНЕР ---
         function vigenereCipher(str, key, action) {
-            let result = '';
-            let j = 0;
-            key = key.toLowerCase().replace(/[^a-z]/g, ''); // Только латиница для ключа
-            if(key.length === 0) return str;
-
+            if(!key) throw new Error("Нужен ключ!");
+            let result = ''; let j = 0;
+            key = key.toLowerCase().replace(/[^a-zа-я]/g, '');
             for (let i = 0; i < str.length; i++) {
                 let c = str[i];
                 if (/[a-zA-Z]/.test(c)) {
-                    let isUpper = c === c.toUpperCase();
-                    let charCode = c.toLowerCase().charCodeAt(0) - 97;
-                    let shift = key[j % key.length].charCodeAt(0) - 97;
-                    
-                    if (action === 'decrypt') {
-                        shift = (26 - shift) % 26;
-                    }
-                    
-                    let newChar = String.fromCharCode(((charCode + shift) % 26) + 97);
-                    result += isUpper ? newChar.toUpperCase() : newChar;
+                    let base = c <= 'Z' ? 65 : 97;
+                    let shift = key[j % key.length].charCodeAt(0) - (key[j % key.length] <= 'z' ? 97 : 1072);
+                    if (action === 'decrypt') shift = (26 - shift) % 26;
+                    result += String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26) + base);
                     j++;
-                } else {
-                    result += c;
-                }
+                } else { result += c; }
             }
             return result;
         }
 
-        // 4. Азбука Морзе
-        const morseDict = {
-            'А':'.-', 'Б':'-...', 'В':'.--', 'Г':'--.', 'Д':'-..', 'Е':'.', 'Ж':'...-', 'З':'--..', 
-            'И':'..', 'Й':'.---', 'К':'-.-', 'Л':'.-..', 'М':'--', 'Н':'-.', 'О':'---', 'П':'.--.', 
-            'Р':'.-.', 'С':'...', 'Т':'-', 'У':'..-', 'Ф':'..-.', 'Х':'....', 'Ц':'-.-.', 'Ч':'---.', 
-            'Ш':'----', 'Щ':'--.-', 'Ъ':'--.--', 'Ы':'-.--', 'Ь':'-..-', 'Э':'..-..', 'Ю':'..--', 'Я':'.-.-',
-            'A':'.-', 'B':'-...', 'C':'-.-.', 'D':'-..', 'E':'.', 'F':'..-.', 'G':'--.', 'H':'....', 
-            'I':'..', 'J':'.---', 'K':'-.-', 'L':'.-..', 'M':'--', 'N':'-.', 'O':'---', 'P':'.--.', 
-            'Q':'--.-', 'R':'.-.', 'S':'...', 'T':'-', 'U':'..-', 'V':'...-', 'W':'.--', 'X':'-..-', 
-            'Y':'-.--', 'Z':'--..', '1':'.----', '2':'..---', '3':'...--', '4':'....-', '5':'.....', 
-            '6':'-....', '7':'--...', '8':'---..', '9':'----.', '0':'-----', ' ':'/'
-        };
-
-        function textToMorse(str) {
-            return str.toUpperCase().split('').map(char => morseDict[char] || char).join(' ');
-        }
-
+        // --- 4. МОРЗЕ ---
+        const morseDict = {'А':'.-', 'Б':'-...', 'В':'.--', 'Г':'--.', 'Д':'-..', 'Е':'.', 'Ж':'...-', 'З':'--..', 'И':'..', 'Й':'.---', 'К':'-.-', 'Л':'.-..', 'М':'--', 'Н':'-.', 'О':'---', 'П':'.--.', 'Р':'.-.', 'С':'...', 'Т':'-', 'У':'..-', 'Ф':'..-.', 'Х':'....', 'Ц':'-.-.', 'Ч':'---.', 'Ш':'----', 'Щ':'--.-', 'Ъ':'--.--', 'Ы':'-.--', 'Ь':'-..-', 'Э':'..-..', 'Ю':'..--', 'Я':'.-.-', 'A':'.-', 'B':'-...', 'C':'-.-.', 'D':'-..', 'E':'.', 'F':'..-.', 'G':'--.', 'H':'....', 'I':'..', 'J':'.---', 'K':'-.-', 'L':'.-..', 'M':'--', 'N':'-.', 'O':'---', 'P':'.--.', 'Q':'--.-', 'R':'.-.', 'S':'...', 'T':'-', 'U':'..-', 'V':'...-', 'W':'.--', 'X':'-..-', 'Y':'-.--', 'Z':'--..', '1':'.----', '2':'..---', '3':'...--', '4':'....-', '5':'.....', '6':'-....', '7':'--...', '8':'---..', '9':'----.', '0':'-----', ' ':'/'};
+        function textToMorse(str) { return str.toUpperCase().split('').map(char => morseDict[char] || char).join(' '); }
         function morseToText(str) {
             const reverseDict = Object.fromEntries(Object.entries(morseDict).map(([k, v]) => [v, k]));
             return str.split(' ').map(code => reverseDict[code] || code).join('').replace(/\//g, ' ');
         }
 
-        // 5. ASCII коды
-        function textToAscii(str) {
-            return str.split('').map(c => c.charCodeAt(0)).join(' ');
+        // --- 5. ASCII ---
+        function textToAscii(str) { return str.split('').map(c => c.charCodeAt(0)).join(' '); }
+        function asciiToText(str) { return str.split(' ').map(num => String.fromCharCode(parseInt(num))).join(''); }
+
+        // --- 6. ГРОНСФЕЛЬД ---
+        function gronsfeldCipher(str, key, action) {
+            key = key.replace(/[^0-9]/g, '');
+            if(!key) throw new Error("Ключ должен состоять из цифр!");
+            let result = ''; let j = 0;
+            for(let i=0; i<str.length; i++) {
+                let c = str[i];
+                if(/[a-zA-Zа-яА-Я]/.test(c)) {
+                    let isRu = /[а-яА-Я]/.test(c);
+                    let base = isRu ? (c <= 'Я' ? 1040 : 1072) : (c <= 'Z' ? 65 : 97);
+                    let size = isRu ? 32 : 26;
+                    let shift = parseInt(key[j % key.length]);
+                    if (action === 'decrypt') shift = (size - shift) % size;
+                    result += String.fromCharCode(((c.charCodeAt(0) - base + shift) % size) + base);
+                    j++;
+                } else { result += c; }
+            }
+            return result;
         }
 
-        function asciiToText(str) {
-            return str.split(' ').map(num => String.fromCharCode(parseInt(num))).join('');
+        // --- 7. БЭКОН ---
+        function baconCipher(str, action) {
+            if(action === 'encrypt') {
+                return str.toLowerCase().replace(/[a-z]/g, c => {
+                    return (c.charCodeAt(0) - 97).toString(2).padStart(5, '0').replace(/0/g, 'A').replace(/1/g, 'B') + ' ';
+                }).toUpperCase().trim();
+            } else {
+                let parts = str.toUpperCase().match(/[AB]{5}/g) || [];
+                return parts.map(p => String.fromCharCode(parseInt(p.replace(/A/g, '0').replace(/B/g, '1'), 2) + 97)).join('');
+            }
+        }
+
+        // --- 8. ПОЛИБИЙ ---
+        function polybiusCipher(str, action) {
+            const grid = [['A','B','C','D','E'],['F','G','H','I','K'],['L','M','N','O','P'],['Q','R','S','T','U'],['V','W','X','Y','Z']];
+            if(action === 'encrypt') {
+                return str.toUpperCase().replace(/[A-Z]/g, c => {
+                    if(c === 'J') c = 'I';
+                    for(let r=0; r<5; r++) for(let col=0; col<5; col++) if(grid[r][col] === c) return `${r+1}${col+1} `;
+                    return c;
+                });
+            } else {
+                return str.replace(/[1-5]{2}/g, match => grid[parseInt(match[0])-1][parseInt(match[1])-1]);
+            }
+        }
+
+        // --- 9. ПЛЕЙФЕР ---
+        function playfairCipher(str, key, action) {
+            key = (key || "").toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+            let matrixStr = Array.from(new Set(key + "ABCDEFGHIKLMNOPQRSTUVWXYZ")).join('');
+            let matrix = [];
+            for(let i=0; i<25; i+=5) matrix.push(matrixStr.slice(i, i+5).split(''));
+            
+            function getPos(c) {
+                for(let r=0; r<5; r++) for(let col=0; col<5; col++) if(matrix[r][col] === c) return [r, col];
+            }
+
+            str = str.toUpperCase().replace(/[^A-Z]/g, '').replace(/J/g, 'I');
+            if(action === 'encrypt') {
+                let pairs = [];
+                for(let i=0; i<str.length; i+=2) {
+                    let c1 = str[i], c2 = str[i+1] || 'X';
+                    if(c1 === c2) { pairs.push([c1, 'X']); i--; } else { pairs.push([c1, c2]); }
+                }
+                return pairs.map(p => {
+                    let [r1, c1] = getPos(p[0]), [r2, c2] = getPos(p[1]);
+                    if(r1 === r2) return matrix[r1][(c1+1)%5] + matrix[r2][(c2+1)%5];
+                    if(c1 === c2) return matrix[(r1+1)%5][c1] + matrix[(r2+1)%5][c2];
+                    return matrix[r1][c2] + matrix[r2][c1];
+                }).join(' ');
+            } else {
+                let res = "";
+                for(let i=0; i<str.length; i+=2) {
+                    let [r1, c1] = getPos(str[i]), [r2, c2] = getPos(str[i+1]);
+                    if(r1 === r2) res += matrix[r1][(c1+4)%5] + matrix[r2][(c2+4)%5];
+                    else if(c1 === c2) res += matrix[(r1+4)%5][c1] + matrix[(r2+4)%5][c2];
+                    else res += matrix[r1][c2] + matrix[r2][c1];
+                }
+                return res;
+            }
+        }
+
+        // --- 10. KOI8 ---
+        const koi8Dict = {'А': 0xe1, 'Б': 0xe2, 'В': 0xf7, 'Г': 0xe7, 'Д': 0xe4, 'Е': 0xe5, 'Ё': 0xb3, 'Ж': 0xf6, 'З': 0xfa, 'И': 0xe9, 'Й': 0xea, 'К': 0xeb, 'Л': 0xec, 'М': 0xed, 'Н': 0xee, 'О': 0xef, 'П': 0xf0, 'Р': 0xf2, 'С': 0xf3, 'Т': 0xf4, 'У': 0xf5, 'Ф': 0xe6, 'Х': 0xe8, 'Ц': 0xe3, 'Ч': 0xfe, 'Ш': 0xfb, 'Щ': 0xfd, 'Ъ': 0xff, 'Ы': 0xf9, 'Ь': 0xf8, 'Э': 0xfc, 'Ю': 0xe0, 'Я': 0xf1, 'а': 0xc1, 'б': 0xc2, 'в': 0xd7, 'г': 0xc7, 'д': 0xc4, 'е': 0xc5, 'ё': 0xa3, 'ж': 0xd6, 'з': 0xda, 'и': 0xc9, 'й': 0xca, 'к': 0xcb, 'л': 0xcc, 'м': 0xcd, 'н': 0xce, 'о': 0xcf, 'п': 0xd0, 'р': 0xd2, 'с': 0xd3, 'т': 0xd4, 'у': 0xd5, 'ф': 0xc6, 'х': 0xc8, 'ц': 0xc3, 'ч': 0xde, 'ш': 0xdb, 'щ': 0xdd, 'ъ': 0xdf, 'ы': 0xd9, 'ь': 0xd8, 'э': 0xdc, 'ю': 0xc0, 'я': 0xd1};
+        function koi8EncodeDecode(str, action) {
+            if (action === 'encrypt') {
+                return str.split('').map(c => koi8Dict[c] ? koi8Dict[c].toString(16).toUpperCase() : c.charCodeAt(0).toString(16).toUpperCase()).join(' ');
+            } else {
+                const reverseDict = Object.fromEntries(Object.entries(koi8Dict).map(([k, v]) => [v, k]));
+                return str.split(' ').map(hex => reverseDict[parseInt(hex, 16)] || String.fromCharCode(parseInt(hex, 16))).join('');
+            }
         }
     </script>
 </body>
