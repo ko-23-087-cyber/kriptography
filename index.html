@@ -1,1 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kriptography | Шифратор и Дешифратор</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --text-color: #c9d1d9;
+            --accent-color: #00ff41; /* Хакерский зеленый */
+            --border-color: #30363d;
+            --error-color: #ff4444;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        select, textarea, input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, textarea:focus, input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        #key-group {
+            display: none; /* Скрыто по умолчанию, показывается если нужен ключ */
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔐 Kriptography</h1>
+        
+        <div class="form-group">
+            <label for="cipher-selector">Выбор алгоритма:</label>
+            <select id="cipher-selector">
+                <option value="caesar">Шифр Цезаря</option>
+                <option value="atbash">Шифр Атбаша</option>
+                <option value="vigenere">Шифр Виженера</option>
+                <option value="morse">Азбука Морзе</option>
+                <option value="ascii">Таблица кодировки ASCII</option>
+                <option value="playfair">Шифр Плейфера (в разработке)</option>
+                <option value="polybius">Шифр Квадрат Полибия (в разработке)</option>
+                <option value="gronsfeld">Шифр Гронсфельда (в разработке)</option>
+                <option value="bacon">Шифр Бэкона (в разработке)</option>
+                <option value="koi8">Кодовая страница KOI8 (в разработке)</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="key-group">
+            <label for="cipher-key">Ключ / Сдвиг:</label>
+            <input type="text" id="cipher-key" placeholder="Введите ключ или число сдвига">
+        </div>
+
+        <div class="form-group">
+            <label for="input-text">Входной текст:</label>
+            <textarea id="input-text" placeholder="Введите текст сюда..."></textarea>
+        </div>
+
+        <div class="buttons">
+            <button onclick="processText('encrypt')">Зашифровать</button>
+            <button onclick="processText('decrypt')">Расшифровать</button>
+        </div>
+
+        <div class="form-group">
+            <label for="output-text">Результат:</label>
+            <textarea id="output-text" readonly placeholder="Здесь появится результат..."></textarea>
+        </div>
+        
+        <div class="footer">
+            project "kriptography" | github.com/твое_имя/kriptography
+        </div>
+    </div>
+
+    <script>
+        // --- Управление интерфейсом ---
+        const cipherSelector = document.getElementById('cipher-selector');
+        const keyGroup = document.getElementById('key-group');
+        const cipherKeyInput = document.getElementById('cipher-key');
+
+        // Показываем поле ключа только для тех шифров, где оно нужно
+        cipherSelector.addEventListener('change', (e) => {
+            const needsKey = ['caesar', 'vigenere', 'gronsfeld', 'playfair'].includes(e.target.value);
+            keyGroup.style.display = needsKey ? 'block' : 'none';
+            if(e.target.value === 'caesar') cipherKeyInput.placeholder = "Введите число (сдвиг)";
+            else if(e.target.value === 'vigenere') cipherKeyInput.placeholder = "Введите слово (ключ)";
+        });
+
+        // Инициализация при загрузке
+        cipherSelector.dispatchEvent(new Event('change'));
+
+        // --- Главная функция обработки ---
+        function processText(action) {
+            const cipher = document.getElementById('cipher-selector').value;
+            const input = document.getElementById('input-text').value;
+            const key = document.getElementById('cipher-key').value;
+            let output = '';
+
+            try {
+                switch(cipher) {
+                    case 'caesar':
+                        output = caesarCipher(input, parseInt(key) || 3, action);
+                        break;
+                    case 'atbash':
+                        output = atbashCipher(input); // Атбаш симметричен, action не важен
+                        break;
+                    case 'morse':
+                        output = action === 'encrypt' ? textToMorse(input) : morseToText(input);
+                        break;
+                    case 'ascii':
+                        output = action === 'encrypt' ? textToAscii(input) : asciiToText(input);
+                        break;
+                    case 'vigenere':
+                        if(!key) { alert("Для шифра Виженера нужен ключ!"); return; }
+                        output = vigenereCipher(input, key, action);
+                        break;
+                    default:
+                        output = "Этот алгоритм еще находится в разработке! Заходи позже.";
+                }
+                document.getElementById('output-text').value = output;
+            } catch (error) {
+                document.getElementById('output-text').value = "Ошибка: " + error.message;
+            }
+        }
+
+        // --- Реализации алгоритмов ---
+
+        // 1. Шифр Цезаря (Англ + Рус)
+        function caesarCipher(str, shift, action) {
+            if (action === 'decrypt') shift = (26 - (shift % 26)) % 26; // Для русского алфавита нужно будет доработать логику расшифровки, здесь базовый сдвиг
+            if (action === 'decrypt') shift = -shift;
+
+            return str.replace(/[a-zA-Zа-яА-Я]/g, function(c) {
+                let isRu = /[а-яА-Я]/.test(c);
+                let base = isRu ? (c <= 'Я' ? 1040 : 1072) : (c <= 'Z' ? 65 : 97);
+                let size = isRu ? 32 : 26;
+                let charCode = c.charCodeAt(0);
+                
+                let normalizedShift = shift % size;
+                if (normalizedShift < 0) normalizedShift += size;
+
+                return String.fromCharCode(((charCode - base + normalizedShift) % size) + base);
+            });
+        }
+
+        // 2. Шифр Атбаша (Англ)
+        function atbashCipher(str) {
+            return str.replace(/[a-zA-Z]/g, function(c) {
+                let base = c <= 'Z' ? 65 : 97;
+                return String.fromCharCode(base + (25 - (c.charCodeAt(0) - base)));
+            });
+        }
+
+        // 3. Шифр Виженера (Англ)
+        function vigenereCipher(str, key, action) {
+            let result = '';
+            let j = 0;
+            key = key.toLowerCase().replace(/[^a-z]/g, ''); // Только латиница для ключа
+            if(key.length === 0) return str;
+
+            for (let i = 0; i < str.length; i++) {
+                let c = str[i];
+                if (/[a-zA-Z]/.test(c)) {
+                    let isUpper = c === c.toUpperCase();
+                    let charCode = c.toLowerCase().charCodeAt(0) - 97;
+                    let shift = key[j % key.length].charCodeAt(0) - 97;
+                    
+                    if (action === 'decrypt') {
+                        shift = (26 - shift) % 26;
+                    }
+                    
+                    let newChar = String.fromCharCode(((charCode + shift) % 26) + 97);
+                    result += isUpper ? newChar.toUpperCase() : newChar;
+                    j++;
+                } else {
+                    result += c;
+                }
+            }
+            return result;
+        }
+
+        // 4. Азбука Морзе
+        const morseDict = {
+            'А':'.-', 'Б':'-...', 'В':'.--', 'Г':'--.', 'Д':'-..', 'Е':'.', 'Ж':'...-', 'З':'--..', 
+            'И':'..', 'Й':'.---', 'К':'-.-', 'Л':'.-..', 'М':'--', 'Н':'-.', 'О':'---', 'П':'.--.', 
+            'Р':'.-.', 'С':'...', 'Т':'-', 'У':'..-', 'Ф':'..-.', 'Х':'....', 'Ц':'-.-.', 'Ч':'---.', 
+            'Ш':'----', 'Щ':'--.-', 'Ъ':'--.--', 'Ы':'-.--', 'Ь':'-..-', 'Э':'..-..', 'Ю':'..--', 'Я':'.-.-',
+            'A':'.-', 'B':'-...', 'C':'-.-.', 'D':'-..', 'E':'.', 'F':'..-.', 'G':'--.', 'H':'....', 
+            'I':'..', 'J':'.---', 'K':'-.-', 'L':'.-..', 'M':'--', 'N':'-.', 'O':'---', 'P':'.--.', 
+            'Q':'--.-', 'R':'.-.', 'S':'...', 'T':'-', 'U':'..-', 'V':'...-', 'W':'.--', 'X':'-..-', 
+            'Y':'-.--', 'Z':'--..', '1':'.----', '2':'..---', '3':'...--', '4':'....-', '5':'.....', 
+            '6':'-....', '7':'--...', '8':'---..', '9':'----.', '0':'-----', ' ':'/'
+        };
+
+        function textToMorse(str) {
+            return str.toUpperCase().split('').map(char => morseDict[char] || char).join(' ');
+        }
+
+        function morseToText(str) {
+            const reverseDict = Object.fromEntries(Object.entries(morseDict).map(([k, v]) => [v, k]));
+            return str.split(' ').map(code => reverseDict[code] || code).join('').replace(/\//g, ' ');
+        }
+
+        // 5. ASCII коды
+        function textToAscii(str) {
+            return str.split('').map(c => c.charCodeAt(0)).join(' ');
+        }
+
+        function asciiToText(str) {
+            return str.split(' ').map(num => String.fromCharCode(parseInt(num))).join('');
+        }
+    </script>
+</body>
+</html>
